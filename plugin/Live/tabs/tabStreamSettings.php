@@ -12,6 +12,10 @@ if ($objLive->allowMultipleLivesPerUser) {
         }
     }
 }
+if(!is_object($liveStreamObject)){
+    $islive = isLive();
+    $liveStreamObject = new LiveStreamObject($islive['key'], $islive['live_servers_id'], @$_REQUEST['live_index'], 0);
+}
 $key = $liveStreamObject->getKeyWithIndex(true);
 ?>
 <style>
@@ -97,7 +101,7 @@ $key = $liveStreamObject->getKeyWithIndex(true);
                                 </div>
                             </div>
                             <?php
-                            if (AVideoPlugin::isEnabledByName('SendRecordedToEncoder', '5.0') && SendRecordedToEncoder::canApprove(User::getId())) {
+                            if (AVideoPlugin::isEnabledByName('SendRecordedToEncoder', '5.0') && (SendRecordedToEncoder::canRecord(User::getId()) || SendRecordedToEncoder::canApprove(User::getId()))) {
                                 ?> 
                                 <div class="form-group">
                                     <span class="fa fa-globe"></span> <?php echo __("Auto record this live"); ?> 
@@ -125,7 +129,6 @@ $key = $liveStreamObject->getKeyWithIndex(true);
             </div>
         </div>
         <div id="tabPosterImage" class="tab-pane fade"> 
-
             <div class="panel panel-default ">
                 <div class="panel-heading">
                     <?php

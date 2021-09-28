@@ -22,6 +22,15 @@ if(!empty($parts["query"])){
 }
 
 if(!empty($_GET['e']) && empty($_GET['p'])){
+    if (strpos($_GET['e'], '/') !== false) {
+        $parts = explode("/", $_GET['e']);
+        if (!empty($parts[1])) {
+            if(empty($_POST['name'])){
+                $_POST['name'] = $parts[1];
+            }
+        }
+        $_GET['e'] = $parts[0];
+    }
     $objE = _json_decode(decryptString($_GET['e']));
     if(!empty($objE->users_id)){
         $user = new User($objE->users_id);
@@ -82,6 +91,7 @@ if (!empty($_GET['p'])) {
             $lth->setTitle($obj->row['title']);
             $lth->setDescription($obj->row['description']);
             $lth->setKey($_POST['name']);
+            $lth->setDomain(@$_REQUEST['domain']);
             $lth->setUsers_id($user->getBdId());
             $lth->setLive_servers_id(Live_servers::getServerIdFromRTMPHost($url));
             _error_log("NGINX ON Publish saving LiveTransmitionHistory");

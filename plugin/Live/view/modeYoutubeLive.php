@@ -20,7 +20,7 @@ if (!empty($_GET['c'])) {
     }
 }
 
-$livet = LiveTransmition::getFromDbByUserName($_GET['u']);
+$livet = LiveTransmition::getFromRequest();
 setLiveKey($livet['key'], Live::getLiveServersIdRequest(), @$_REQUEST['live_index']);
 $lt = new LiveTransmition($livet['id']);
 if (!$lt->userCanSeeTransmition()) {
@@ -188,6 +188,9 @@ if (empty($sideAd) && !AVideoPlugin::loadPluginIfEnabled("Chat2")) {
                             </div>
                             <?php
                             $link = Live::getLinkToLiveFromUsers_id($user_id);
+                            if(!empty($_REQUEST['live_schedule'])){
+                                $link = addQueryStringParameter($link, 'live_schedule', $_REQUEST['live_schedule']);
+                            }
                             if (empty($advancedCustom->disableShareAndPlaylist) && empty($advancedCustom->disableShareOnly)) {
                                 getShareMenu($liveTitle, $link, $link, addQueryStringParameter($link, 'embed', 1), $img,"row bgWhite list-group-item menusDiv");
                             }

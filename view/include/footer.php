@@ -29,10 +29,7 @@ if (empty($advancedCustom)) {
         ?>
         <ul class="list-inline">
             <li>
-                Powered by <a href="http://www.avideo.com" class="external btn btn-outline btn-primary btn-xs" target="_blank" rel="noopener noreferrer">AVideo®</a> - <a href="http://platform.avideo.com" class="external btn btn-outline btn-primary btn-xs" target="_blank" rel="noopener noreferrer">A Video Platform v<?php echo $config->getVersion(); ?></a>
-            </li>
-            <li>
-                <a href="https://www.facebook.com/avideo/" class="external btn btn-outline btn-primary btn-xs" target="_blank" rel="noopener noreferrer"><span class="sr-only">Facebook</span><i class="fab fa-facebook-square"></i></a>
+                Powered by AVideo ® Platform v<?php echo $config->getVersion(); ?>
             </li>
         </ul>
         <?php
@@ -70,6 +67,8 @@ $jsFiles[] = "view/js/bootstrap-list-filter/bootstrap-list-filter.min.js";
 $jsFiles[] = "view/js/js-cookie/js.cookie.js";
 $jsFiles[] = "view/js/jquery-toast/jquery.toast.min.js";
 $jsFiles[] = "view/bootstrap/jquery-bootstrap-scrolling-tabs/jquery.scrolling-tabs.min.js";
+$jsFiles[] = "view/js/BootstrapMenu.min.js";
+
 $jsFiles = array_merge($jsFiles, AVideoPlugin::getJSFiles());
 $jsURL = combineFiles($jsFiles, "js");
 ?>
@@ -137,8 +136,33 @@ if(isFirstPage()){
 
 
     function getPageHeight() {
-        return $('#mainNavBar').height() + $('#mainFooter').height() + $('.container, .container-fluid').first().height();
+        var mainNavBarH = 0;
+        if($('#mainNavBar').length){
+            mainNavBarH = $('#mainNavBar').height();
+        }
+        var mainFooterH = 0;
+        if($('#mainFooter').length){
+            mainFooterH = $('#mainFooter').height();
+        }
+        var containerH = getLargerContainerHeight();
+        return mainNavBarH + mainFooterH + containerH;
     }
+    
+    function getLargerContainerHeight(){
+        var conteiners = $('body > .container,body >  .container-fluid');
+        var height = 0;
+        for (var item in conteiners) {
+            if(isNaN(item)){
+                continue;
+            }
+            var h = $(conteiners[item]).height();
+            if(h>height){
+                height = h;
+            }
+        }
+        return height;
+    }
+    
 </script>
 <!--
 <?php
@@ -154,6 +178,9 @@ if (User::isAdmin() && !empty($getCachesProcessed) && is_array($getCachesProcess
  */
 if(!empty($config) && is_object($config)){
     echo PHP_EOL.'v:'.$config->getVersion().PHP_EOL;
+}
+if(!empty($global['rowCount'])){
+    echo PHP_EOL."rowCount: {$global['rowCount']}";
 }
 ?>
 -->

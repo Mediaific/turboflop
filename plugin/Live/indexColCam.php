@@ -4,7 +4,7 @@ $users_id = User::getId();
 ?>
 <script>
     autoplay = false;
-    var forceIndex = '<?php echo $_REQUEST['live_index']; ?>';
+    var forceIndex = '<?php echo @$_REQUEST['live_index']; ?>';
 </script>
 <div class="panel panel-default">
     <div class="panel-heading">
@@ -14,7 +14,9 @@ $users_id = User::getId();
         if (Live::canStreamWithMeet()) {
             include $global['systemRootPath'] . 'plugin/Live/meet.php';
         }
-        include $global['systemRootPath'] . 'plugin/Live/webRTC.php';
+        if(Live::canStreamWithWebRTC()){
+            include $global['systemRootPath'] . 'plugin/Live/webRTC.php';
+        }
         ?>
     </div>
     <div class="panel-body">          

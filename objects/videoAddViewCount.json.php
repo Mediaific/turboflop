@@ -5,13 +5,7 @@ if (!isset($global['systemRootPath'])) {
     require_once '../videos/configuration.php';
 }
 
-_error_log('Add view '. json_encode($_REQUEST));
-
-if(!empty($_GET['SESSID'])){
-    @session_write_close();
-    session_id($_GET['PHPSESSID']);
-    _session_start();
-}
+//_error_log('Add view '. json_encode($_REQUEST));
 
 if (empty($_REQUEST['id'])) {
     die('{"error":"' . __("Permission denied") . '"}');

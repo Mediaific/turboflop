@@ -2,19 +2,17 @@
 $isWebRTC = 1;
 require_once '../../videos/configuration.php';
 
-if (!User::canStream()) {
+if (!Live::canStreamWithWebRTC()) {
     forbiddenPage('You cannot stream');
 }
 
-
 $lObj = AVideoPlugin::getDataObject('Live');
-$iframeURL = $lObj->webRTC_player;
-$iframeURL = addQueryStringParameter($iframeURL, 'webSiteRootURL', $global['webSiteRootURL']);
-$iframeURL = addQueryStringParameter($iframeURL, 'userHash', Live::getUserHash(User::getId()));
+
+$iframeURL = Live::getWebRTCIframeURL(User::getId());
 
 $chatURL = '';
 $chat = AVideoPlugin::loadPluginIfEnabled('Chat2');
-if (!empty($chat)) {
+if (!empty($chat) && empty(Chat2::getEmbedURL(User::getId()))) {
     $chatURL = Chat2::getChatRoomLink(User::getId(), 1, 1, 1, true, 1);
     if (!empty($_REQUEST['user'])) {
         $chatURL = addQueryStringParameter($chatURL, 'user', $_REQUEST['user']);
@@ -26,7 +24,11 @@ if (!empty($chat)) {
 $users_id = User::getId();
 $trasnmition = LiveTransmition::createTransmitionIfNeed($users_id);
 $live_servers_id = Live::getCurrentLiveServersId();
-$forceIndex = "Live" . date('YmdHis');
+$forceIndex = '';
+if (!empty($lObj->server_type->value)) {
+    $forceIndex = "Live" . date('YmdHis');
+}
+
 $liveStreamObject = new LiveStreamObject($trasnmition['key'], $live_servers_id, $forceIndex, 0);
 $streamName = $liveStreamObject->getKeyWithIndex($forceIndex, true);
 $controls = Live::getAllControlls($streamName);
@@ -80,7 +82,7 @@ $controls = Live::getAllControlls($streamName);
             #controls .col{
                 padding: 0 5px;
             }
-            
+
         </style>
         <script>
             var webSiteRootURL = '<?php echo $global['webSiteRootURL']; ?>';
@@ -98,7 +100,7 @@ $controls = Live::getAllControlls($streamName);
     <body>
         <iframe frameBorder="0" 
                 src="<?php echo $iframeURL; ?>" 
-                allowusermedia allow="feature_name allow_list;feature_name allow_list;camera *;microphone *"></iframe>
+                allowusermedia allow="camera *;microphone *"></iframe>
                 <?php
                 if (!empty($chatURL)) {
                     ?>
@@ -136,7 +138,7 @@ $controls = Live::getAllControlls($streamName);
                 </button>
             </div>
             <div class="col col-xs-9" id="webRTCConnect" >
-                <button class="btn btn-success btn-block" onclick="webRTCConnect();" data-toggle="tooltip" title="<?php echo __("Start Live Now"); ?>">
+                <button class="btn btn-success btn-block" onclick="webRTCConnect();" data-toggle="tooltip" title="<?php echo __("Start Live Now"); ?>"  disabled="disabled">
                     <i class="fas fa-circle"></i> <?php echo __("Go Live"); ?>
                 </button>
             </div>
@@ -155,7 +157,7 @@ $controls = Live::getAllControlls($streamName);
                     var updateControlStatusLastState;
 
                     $(document).ready(function () {
-                        
+
                     });
 
                     function webRTCModalConfigShow() {

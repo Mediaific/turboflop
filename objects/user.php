@@ -705,8 +705,9 @@ if (typeof gtag !== \"function\") {
         $cacheName = "canWatchVideo$videos_id";
         if (!User::isLogged()) {
             $cacheName = "canWatchVideoNOTLOGED$videos_id";
-            $cache = ObjectYPT::getCache($cacheName, 3600);
-        } else {
+            $cache = ObjectYPT::getCache($cacheName, 60);
+        }
+        if (empty($cache)) {
             $cache = ObjectYPT::getSessionCache($cacheName, 600);
         }
         if (isset($cache)) {
@@ -715,7 +716,6 @@ if (typeof gtag !== \"function\") {
             }
             return $cache;
         }
-
         if (empty($videos_id)) {
             _error_log("User::canWatchVideo Video is empty ({$videos_id})");
             return false;
@@ -748,7 +748,8 @@ if (typeof gtag !== \"function\") {
 
         if (empty($rows)) {
             // check if any plugin restrict access to this video
-            if (!AVideoPlugin::userCanWatchVideo(User::getId(), $videos_id)) {
+            $pluginCanWatch = AVideoPlugin::userCanWatchVideo(User::getId(), $videos_id);
+            if (!$pluginCanWatch) {
                 if (User::isLogged()) {
                     _error_log("User::canWatchVideo there is no usergorup set for this video but A plugin said user [" . User::getId() . "] can not see ({$videos_id})");
                 } else {
@@ -1282,7 +1283,7 @@ if (typeof gtag !== \"function\") {
     public static function getUserFromEmail($email) {
         $email = trim($email);
         $sql = "SELECT * FROM users WHERE email = ? LIMIT 1";
-        $res = sqlDAL::readSql($sql, "s", array($email));
+        $res = sqlDAL::readSql($sql, "s", array($email), true);
         $user = sqlDAL::fetchAssoc($res);
         sqlDAL::close($res);
         if ($user != false) {
@@ -1832,7 +1833,7 @@ if (typeof gtag !== \"function\") {
         foreach ($groups as $value) {
             $obj = new stdClass();
             $obj->type = "warning";
-            $obj->text = $value['group_name'];
+            $obj->text = (!empty($value['isDynamic'])?'<i class="fas fa-link"></i>':'<i class="fas fa-lock"></i>').' '.$value['group_name'];
             $tags[] = $obj;
         }
 

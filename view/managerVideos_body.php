@@ -278,17 +278,23 @@
                     </button>
                     <?php
                 }
+                if (AVideoPlugin::isEnabledByName('CDN') && CDN::userCanMoveVideoStorage()) {
+                    include $global['systemRootPath'] . 'plugin/CDN/Storage/getVideoManagerButton.php';
+                }
                 ?>
                 <button class="btn btn-danger" id="deleteBtn">
                     <i class="fa fa-trash" aria-hidden="true"></i>  <span class="hidden-md hidden-sm hidden-xs"><?php echo __('Delete'); ?></span>
                 </button>
             </div>
-            <table id="grid" class="table table-condensed table-hover table-striped">
+            <table id="grid" class="table table-condensed table-hover table-striped videosManager">
                 <thead>
                     <tr>
                         <th data-formatter="checkbox" data-width="25px" ></th>
                         <th data-column-id="title" data-formatter="titleTag" ><?php echo __("Title"); ?></th>
                         <th data-column-id="tags" data-formatter="tags" data-sortable="false" data-width="300px" data-header-css-class='hidden-xs' data-css-class='hidden-xs tagsInfo'><?php echo __("Tags"); ?></th>
+                        <th data-column-id="sites_id" data-formatter="sites_id" data-width="50px" data-header-css-class='hidden-xs' data-css-class='hidden-xs'>
+                            <?php echo htmlentities('<i class="fas fa-hdd" data-placement="top" data-toggle="tooltip" title="' . __("Storage") . '"></i>'); ?>
+                        </th>
                         <th  style="display: none;"  data-column-id="duration" data-width="80px"  data-header-css-class='hidden-md hidden-sm hidden-xs showOnGridDone' data-css-class='hidden-md hidden-sm hidden-xs'>
                             <?php echo htmlentities('<i class="fas fa-stopwatch" aria-hidden="true" data-placement="top" data-toggle="tooltip" title="' . __("Duration") . '"></i>'); ?>
                         </th>
@@ -580,7 +586,7 @@
                                                     return false;
                                                 }
                                             }).autocomplete("instance")._renderItem = function (ul, item) {
-                                                return $("<li>").append("<div>" + item.title + "<br><?php echo __("Uploaded By"); ?>: " + item.user + "</div>").appendTo(ul);
+                                                return $("<li>").append("<div class='clearfix'><img class='img img-responsive pull-left' style='max-width: 90px;max-height: 35px; margin-right: 10px;' src='" + item.videosURL.jpg.url + "'/>[#" + item.id + "] " + item.title + "<br><?php echo __("Owner"); ?>: " + item.user + "</div>").appendTo(ul);
                                             };
                                             $("#inputUserOwner").autocomplete({
                                                 minLength: 0,
@@ -1779,17 +1785,29 @@ if (CustomizeUser::canDownloadVideos()) {
                                                                 if (typeof row.videosURL[k].url === 'undefined' || !row.videosURL[k].url) {
                                                                     continue;
                                                                 }
-                                                                var url = row.videosURL[k].url;
-                                                                var downloadURL = addGetParam(url, 'download', 1);
+                                                                //var url = (typeof row.videosURL[k].url_noCDN !== 'undefined')?row.videosURL[k].url_noCDN:row.videosURL[k].url;
+                                                                var url = (typeof row.videosURL[k].url !== 'undefined')?row.videosURL[k].url:row.videosURL[k].url;
+                                                                var addParameters = true;
+                                                                if (url.includes('.s3.')) {
+                                                                    addParameters = false;
+                                                                }
+                                                                var downloadURL = url;
+                                                                if(addParameters){
+                                                                    downloadURL = addGetParam(url, 'download', 1);
+                                                                }
                                                                 var pattern = /^m3u8/i;
                                                                 if (pattern.test(k) === true) {
-                                                                    downloadURL = addGetParam(downloadURL, 'title', row.clean_title + '_' + k + '.mp4');
+                                                                    if(addParameters){
+                                                                        downloadURL = addGetParam(downloadURL, 'title', row.clean_title + '_' + k + '.mp4');
+                                                                    }
                                                                     download += '<div class="btn-group  btn-group-justified">';
                                                                     download += '<a class="btn btn-default btn-xs" onclick="copyToClipboard(\'' + url + '\');" ><span class="fa fa-copy " aria-hidden="true"></span> ' + k + '</a>';
                                                                     download += '<a href="' + downloadURL + '" class="btn btn-default btn-xs" target="_blank" ><span class="fa fa-download " aria-hidden="true"></span> MP4</a>';
                                                                     download += '</div>';
                                                                 } else {
-                                                                    downloadURL = addGetParam(downloadURL, 'title', row.clean_title + '.mp4');
+                                                                    if(addParameters){
+                                                                        downloadURL = addGetParam(downloadURL, 'title', row.clean_title + '.mp4');
+                                                                    }
                                                                     download += '<a href="' + downloadURL + '" class="btn btn-default btn-xs btn-block" target="_blank"  data-placement="left" data-toggle="tooltip" title="<?php echo str_replace("'", "\\'", __("Download File")); ?>" ><span class="fa fa-download " aria-hidden="true"></span> ' + k + '</a>';
                                                                 }
 
@@ -1887,6 +1905,13 @@ if (Permissions::canAdminVideos()) {
                                                     },
                                                     "filesize": function (column, row) {
                                                         return formatFileSize(row.filesize);
+                                                    },
+                                                    "sites_id": function (column, row) {
+                                                        if(row.sites_id){
+                                                            return '<i class="fas fa-cloud"></i>';
+                                                        }else{
+                                                            return '<i class="fas fa-map-marker"></i>';
+                                                        }
                                                     },
                                                     "isSuggested": function (column, row) {
                                                         var suggestBtn = "";

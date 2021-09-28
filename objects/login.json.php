@@ -155,6 +155,9 @@ if (!empty($_GET['type'])) {
         //header("Location: {$global['webSiteRootURL']}user?error=" . urlencode($e->getMessage()));
         //echo $e->getMessage();
     }
+    if(!isSameDomainAsMyAVideo($location)){
+       $location = $global['webSiteRootURL']; 
+    }
     header('Content-Type: text/html');
     ?>
     <script>
@@ -318,6 +321,9 @@ if ($object->isLogged) {
 } else {
     _error_log('login.json.php is not logged');
 }
+
+$object->PHPSESSID = session_id();
+
 TimeLogEnd($timeLog, __LINE__);
 //_error_log("login.json.php almost complete");
 $json = _json_encode($object);
